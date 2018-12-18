@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 import logging
 import argparse
-import bottle
-from bottle import route, run, template, response, request
+from bottle import route, run, response, request
 import subprocess
 import json
 import sys
