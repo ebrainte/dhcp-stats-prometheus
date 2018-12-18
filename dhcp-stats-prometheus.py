@@ -26,6 +26,7 @@ parser.add_argument('-c6', '--dhcp6-config', required=False, help='dhcp6 config 
 parser.add_argument('-l4', '--dhcp4-leases', required=False, help='dhcp4 leases path', default='/var/lib/dhcp/dhcpd.leases')
 parser.add_argument('-l6', '--dhcp6-leases', required=False, help='dhcp6 leases path', default='/var/lib/dhcp/dhcpd6.leases')
 parser.add_argument('-R', '--restrict', required=False, help='restrict metrics to set of IP addresses (may repeat)', default=None, action='append')
+parser.add_argument('-m', '--mode', required=False, help='use subnet style or shared networks', default='shared-networks')
 args = parser.parse_args()
 
 restricted_addresses = []
