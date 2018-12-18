@@ -73,22 +73,23 @@ def prometheus_metrics():
         pass
     data = []
     for shared_network in dhcpstat['shared-networks']:
-        data.append('dhcp_pool_used{ip_version="%s",network="%s"} %s' % (4,shared_network['location'],shared_network['used']))
-        data.append('dhcp_pool_free{ip_version="%s",network="%s"} %s' % (4,shared_network['location'],shared_network['free']))
+        data.append('dhcp_pool_used{ip_version="%s",network="%s"} %s' % (4, shared_network['location'], shared_network['used']))
+        data.append('dhcp_pool_free{ip_version="%s",network="%s"} %s' % (4, shared_network['location'], shared_network['free']))
         defined_leases = float(shared_network['defined'])
         leases_used_percentage = 0
         if defined_leases > 0:
             leases_used_percentage = float(shared_network['used'])/defined_leases
-        data.append('dhcp_pool_usage{ip_version="%s",network="%s"} %s' % (4,shared_network['location'],leases_used_percentage))
+        data.append('dhcp_pool_usage{ip_version="%s",network="%s"} %s' % (4, shared_network['location'], leases_used_percentage))
     for shared_network in dhcp6stat['shared-networks']:
-        data.append('dhcp_pool_used{ip_version="%s",network="%s"} %s' % (6,shared_network['location'],shared_network['used']))
-        data.append('dhcp_pool_free{ip_version="%s",network="%s"} %s' % (6,shared_network['location'],shared_network['free']))
+        data.append('dhcp_pool_used{ip_version="%s",network="%s"} %s' % (6, shared_network['location'], shared_network['used']))
+        data.append('dhcp_pool_free{ip_version="%s",network="%s"} %s' % (6, shared_network['location'], shared_network['free']))
         defined_leases = float(shared_network['defined'])
         leases_used_percentage = 0
         if defined_leases > 0:
             leases_used_percentage = float(shared_network['used'])/defined_leases
-        data.append('dhcp_pool_usage{ip_version="%s",network="%s"} %s' % (6,shared_network['location'],leases_used_percentage))
+        data.append('dhcp_pool_usage{ip_version="%s",network="%s"} %s' % (6, shared_network['location'], leases_used_percentage))
     response.content_type = 'text/plain'
     return '%s\n' % ('\n'.join(data))
+
 
 run(host=args.listen_address, port=args.listen_port)
