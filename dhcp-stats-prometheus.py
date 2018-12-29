@@ -65,14 +65,9 @@ def prometheus_metrics():
     dhcpstat = {args.mode: []}
     dhcp6stat = {args.mode: []}
 
-    try:
-        dhcpstat = json.loads(exec_command([args.binary, '-c', args.dhcp4_config, '-l', args.dhcp4_leases, '-f', 'j']))
-    except:
-        pass
-    try:
-        dhcp6stat = json.loads(exec_command([args.binary, '-c', args.dhcp6_config, '-l', args.dhcp6_leases, '-f', 'j']))
-    except:
-        pass
+    dhcpstat = json.loads(exec_command([args.binary, '-c', args.dhcp4_config, '-l', args.dhcp4_leases, '-f', 'j']))
+    dhcp6stat = json.loads(exec_command([args.binary, '-c', args.dhcp6_config, '-l', args.dhcp6_leases, '-f', 'j']))
+
     data = []
     for pool in dhcpstat[args.mode]:
         if args.mode == "subnets":
@@ -86,7 +81,11 @@ def prometheus_metrics():
         if defined_leases > 0:
             leases_used_percentage = float(pool['used'])/defined_leases
         data.append('dhcp_pool_usage{ip_version="%s",network="%s"} %s' % (4, network, leases_used_percentage))
-    for pool in dhcp6stat['shared-networks']:
+    for pool in dhcp6stat[args.mode]:
+        if args.mode == "subnets":
+            network = pool['range'].split(' - ')[0]
+        else:
+            network = pool['location']
         data.append('dhcp_pool_used{ip_version="%s",network="%s"} %s' % (6, network, pool['used']))
         data.append('dhcp_pool_free{ip_version="%s",network="%s"} %s' % (6, network, pool['free']))
         defined_leases = float(pool['defined'])
