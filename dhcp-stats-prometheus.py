@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import logging
 import argparse
-from bottle import route, run, response, request
+import bottle
+from bottle import route, run, template, response, request
 import subprocess
 import json
 import sys
@@ -21,12 +22,9 @@ parser = argparse.ArgumentParser(description='dhcp pool stats exporter for prome
 parser.add_argument('-l', '--listen-address', required=False, help='listen-address', default='::')
 parser.add_argument('-p', '--listen-port', required=False, help='listen-port', default=9991, type=int)
 parser.add_argument('-b', '--binary', required=False, help='dhcpd-pools-binary', default=dhcpd_pools_educated_guess)
-parser.add_argument('-c4', '--dhcp4-config', required=False, help='dhcp4 config path', default='/etc/dhcp/dhcpd.conf')
-parser.add_argument('-c6', '--dhcp6-config', required=False, help='dhcp6 config path', default='/etc/dhcp/dhcpd6.conf')
-parser.add_argument('-l4', '--dhcp4-leases', required=False, help='dhcp4 leases path', default='/var/lib/dhcp/dhcpd.leases')
-parser.add_argument('-l6', '--dhcp6-leases', required=False, help='dhcp6 leases path', default='/var/lib/dhcp/dhcpd6.leases')
+parser.add_argument('-c4', '--dhcp4-config', required=False, help='dhcp4 config path', default='/etc/dhcpd/dhcpd.conf')
+parser.add_argument('-l4', '--dhcp4-leases', required=False, help='dhcp4 leases path', default='/var/lib/dhcpd/dhcpd.leases')
 parser.add_argument('-R', '--restrict', required=False, help='restrict metrics to set of IP addresses (may repeat)', default=None, action='append')
-parser.add_argument('-m', '--mode', required=False, help='use subnet style or shared networks', default='shared-networks')
 args = parser.parse_args()
 
 restricted_addresses = []
@@ -62,39 +60,23 @@ def test_restricted(remote_address):
 def prometheus_metrics():
     if not test_restricted(request['REMOTE_ADDR']):
         return ''
-    dhcpstat = {args.mode: []}
-    dhcp6stat = {args.mode: []}
-
-    dhcpstat = json.loads(exec_command([args.binary, '-c', args.dhcp4_config, '-l', args.dhcp4_leases, '-f', 'j']))
-    dhcp6stat = json.loads(exec_command([args.binary, '-c', args.dhcp6_config, '-l', args.dhcp6_leases, '-f', 'j']))
+    dhcpstat = {'shared-networks': []}
+    try:
+        dhcpstat = json.loads(exec_command([args.binary, '-c', args.dhcp4_config, '-l', args.dhcp4_leases, '-f', 'j']))
+        print(dhcpstat)
+    except:
+        pass
 
     data = []
-    for pool in dhcpstat[args.mode]:
-        if args.mode == "subnets":
-            network = pool['range'].split(' - ')[0]
-        else:
-            network = pool['location']
-        data.append('dhcp_pool_used{ip_version="%s",network="%s"} %s' % (4, network, pool['used']))
-        data.append('dhcp_pool_free{ip_version="%s",network="%s"} %s' % (4, network, pool['free']))
-        defined_leases = float(pool['defined'])
+    for shared_network in dhcpstat['shared-networks']:
+        data.append('dhcp_pool_used{ip_version="%s",network="%s"} %s' % (4,shared_network['location'],shared_network['used']))
+        data.append('dhcp_pool_free{ip_version="%s",network="%s"} %s' % (4,shared_network['location'],shared_network['free']))
+        defined_leases = float(shared_network['defined'])
         leases_used_percentage = 0
         if defined_leases > 0:
-            leases_used_percentage = float(pool['used'])/defined_leases
-        data.append('dhcp_pool_usage{ip_version="%s",network="%s"} %s' % (4, network, leases_used_percentage))
-    for pool in dhcp6stat[args.mode]:
-        if args.mode == "subnets":
-            network = pool['range'].split(' - ')[0]
-        else:
-            network = pool['location']
-        data.append('dhcp_pool_used{ip_version="%s",network="%s"} %s' % (6, network, pool['used']))
-        data.append('dhcp_pool_free{ip_version="%s",network="%s"} %s' % (6, network, pool['free']))
-        defined_leases = float(pool['defined'])
-        leases_used_percentage = 0
-        if defined_leases > 0:
-            leases_used_percentage = float(pool['used'])/defined_leases
-        data.append('dhcp_pool_usage{ip_version="%s",network="%s"} %s' % (6, network, leases_used_percentage))
+            leases_used_percentage = float(shared_network['used'])/defined_leases
+        data.append('dhcp_pool_usage{ip_version="%s",network="%s"} %s' % (4,shared_network['location'],leases_used_percentage))
     response.content_type = 'text/plain'
     return '%s\n' % ('\n'.join(data))
-
 
 run(host=args.listen_address, port=args.listen_port)
