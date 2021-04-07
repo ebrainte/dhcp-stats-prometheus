@@ -1,0 +1,16 @@
+# https://docs.docker.com/compose/compose-file/
+version: "3.8"
+
+services:
+  dhcp-stats-prometheus:
+    container_name: dhcp-stats-prometheus
+    build: ./
+    image: dhcp-stats-prometheus
+    tty: true
+    hostname: dhcp-stats-prometheus
+    volumes:
+        - /etc/dhcpd/dhcpd.conf:/mnt/dhcpd.conf:ro
+        - /var/lib/dhcpd/dhcpd.leases:/mnt/dhcpd.leases:ro
+    ports:
+        - 12776:12776
+    restart: always
