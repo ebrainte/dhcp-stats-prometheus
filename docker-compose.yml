@@ -9,7 +9,7 @@ services:
     tty: true
     hostname: dhcp-stats-prometheus
     volumes:
-        - /etc/dhcpd/:/etc/dhcpd:ro
+        - /etc/dhcpd/:/etc/dhcpd/:ro
         - /var/lib/dhcpd/dhcpd.leases:/var/lib/dhcpd/dhcpd.leases:ro
     ports:
         - 12776:12776
