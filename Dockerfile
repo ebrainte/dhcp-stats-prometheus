@@ -10,4 +10,4 @@ COPY . .
 
 # COPY external ./usr/src/app/
 
-CMD [ "python", "./dhcp-stats-prometheus.py", "-p", "12776", "-c4", "/mnt/dhcpd.conf", "-l4", "/mnt/dhcpd.leases", "-m", "subnets" ]
+CMD [ "python", "./dhcp-stats-prometheus.py", "-p", "12776", "-c4", "/etc/dhcpd/dhcpd.conf", "-l4", "/var/lib/dhcpd/dhcpd.leases", "-m", "subnets" ]
