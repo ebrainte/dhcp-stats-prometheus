@@ -67,7 +67,7 @@ def prometheus_metrics():
     data = []
     for pool in dhcpstat[args.mode]:
         if args.mode == "subnets":
-            network = pool['range'].split(' - ')[0]
+            network = pool['range']
         else:
             network = pool['location']
         data.append('dhcp_pool_used{ip_version="%s",network="%s"} %s' % (4, network, pool['used']))
